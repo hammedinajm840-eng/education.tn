@@ -1,0 +1,645 @@
+```html
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+
+<head>
+
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>نجم الدين همادي - منصة تعليمية</title>
+
+<script src="https://cdn.tailwindcss.com"></script>
+
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700;900&display=swap" rel="stylesheet">
+
+<style>
+
+*{
+font-family:'Cairo',sans-serif;
+box-sizing:border-box;
+}
+
+body{
+background:#eef3ff;
+transition:.4s;
+}
+
+.card{
+transition:.3s;
+}
+
+.card:hover{
+transform:translateY(-6px);
+}
+
+.hidden-scroll::-webkit-scrollbar{
+display:none;
+}
+
+</style>
+
+</head>
+
+<body>
+
+<div class="w-full min-h-screen bg-[#edf5f3]/80 backdrop-blur-sm shadow-2xl overflow-hidden">
+
+<div class="grid lg:grid-cols-[280px_1fr] min-h-screen">
+
+<!-- SIDEBAR -->
+
+<aside class="bg-[#f5f1de] p-5 border-l">
+
+<div class="bg-white rounded-[30px] p-5 shadow-lg text-center">
+
+<div class="w-40 h-40 mx-auto rounded-full overflow-hidden border-[8px] border-yellow-300 shadow-lg">
+
+<img
+src="./images/logo.png.png"
+class="w-full h-full object-contain">
+
+</div>
+
+<h1 class="text-4xl font-black text-blue-700 mt-5">
+نجم الدين همادي
+</h1>
+
+<p class="text-red-500 font-bold mt-3">
+التعليم هو مفتاح المستقبل
+</p>
+
+</div>
+
+<div class="mt-6 space-y-4">
+
+<button
+onclick="openAboutPage()"
+class="w-full bg-blue-600 text-white py-4 rounded-2xl font-black text-xl shadow-lg">
+🏠 الرئيسية
+</button>
+
+<button
+onclick="openLogin()"
+class="w-full bg-purple-600 text-white py-4 rounded-2xl font-black text-xl shadow-lg">
+🔐 تسجيل الدخول
+</button>
+
+<button
+id="logout-btn"
+onclick="logout()"
+class="hidden w-full bg-red-600 text-white py-4 rounded-2xl font-black text-xl shadow-lg">
+🚪 تسجيل الخروج
+</button>
+
+<!-- زر الخلفية -->
+
+<div
+id="bg-btn-container"
+class="hidden">
+
+<button
+id="changeBgBtn"
+class="w-full bg-blue-500 text-white py-4 rounded-2xl font-black text-xl shadow-lg mt-4">
+
+🎨 تغيير الخلفية
+
+</button>
+
+<input
+type="file"
+id="bgInput"
+accept="image/*"
+hidden>
+
+</div>
+
+</div>
+
+</aside>
+
+<!-- MAIN -->
+
+<main class="p-6">
+
+<h1
+id="level-title"
+class="text-center text-6xl font-black text-green-700 mb-8">
+✨ السنة الأولى ✨
+</h1>
+
+<!-- SEARCH -->
+
+<div class="bg-white rounded-[30px] shadow-lg p-4 mb-8">
+
+<input
+id="search-input"
+type="text"
+placeholder="🔍 ابحث عن مادة..."
+class="w-full border-2 border-blue-200 rounded-2xl px-5 py-4 text-xl outline-none font-bold"
+/>
+
+</div>
+
+<!-- LEVEL BUTTONS -->
+
+<div class="flex gap-4 overflow-x-auto hidden-scroll mb-10 pb-2">
+
+<button onclick="renderSubjects('السنة الأولى',this)" class="level-btn bg-green-600 text-white px-7 py-4 rounded-2xl font-black whitespace-nowrap">
+السنة الأولى
+</button>
+
+<button onclick="renderSubjects('السنة الثانية',this)" class="level-btn bg-white shadow px-7 py-4 rounded-2xl font-black whitespace-nowrap">
+السنة الثانية
+</button>
+
+<button onclick="renderSubjects('السنة الثالثة',this)" class="level-btn bg-white shadow px-7 py-4 rounded-2xl font-black whitespace-nowrap">
+السنة الثالثة
+</button>
+
+<button onclick="renderSubjects('السنة الرابعة',this)" class="level-btn bg-white shadow px-7 py-4 rounded-2xl font-black whitespace-nowrap">
+السنة الرابعة
+</button>
+
+<button onclick="renderSubjects('السنة الخامسة',this)" class="level-btn bg-white shadow px-7 py-4 rounded-2xl font-black whitespace-nowrap">
+السنة الخامسة
+</button>
+
+<button onclick="renderSubjects('السنة السادسة',this)" class="level-btn bg-white shadow px-7 py-4 rounded-2xl font-black whitespace-nowrap">
+السنة السادسة
+</button>
+
+</div>
+
+<!-- SUBJECTS -->
+
+<div
+id="subjects-container"
+class="grid md:grid-cols-2 xl:grid-cols-3 gap-8 transition-all duration-500">
+</div>
+
+</main>
+
+</div>
+
+</div>
+
+<script type="module">
+
+import { createClient }
+from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm';
+
+/* =========================
+SUPABASE
+========================= */
+
+const SUPABASE_URL =
+'https://wsrwidfvcrmppayfbqel.supabase.co';
+
+const SUPABASE_KEY =
+'ضع_هنا_مفتاح_supabase';
+
+const BUCKET = 'school-files';
+
+const supabase =
+createClient(
+SUPABASE_URL,
+SUPABASE_KEY
+);
+
+/* =========================
+ELEMENTS
+========================= */
+
+const subjectsContainer =
+document.getElementById('subjects-container');
+
+const levelTitle =
+document.getElementById('level-title');
+
+const searchInput =
+document.getElementById('search-input');
+
+/* =========================
+SUBJECTS
+========================= */
+
+const subjectsByLevel = {
+
+'السنة الأولى':[
+{title:'الرياضيات',id:'math'},
+{title:'اللغة العربية',id:'arabic'},
+{title:'الإيقاظ العلمي',id:'science'}
+],
+
+'السنة الثانية':[
+{title:'الرياضيات',id:'math'},
+{title:'اللغة العربية',id:'arabic'},
+{title:'الإيقاظ العلمي',id:'science'}
+],
+
+'السنة الثالثة':[
+{title:'الرياضيات',id:'math'},
+{title:'اللغة العربية',id:'arabic'},
+{title:'الفرنسية',id:'french'},
+{title:'الإيقاظ العلمي',id:'science'}
+],
+
+'السنة الرابعة':[
+{title:'الرياضيات',id:'math'},
+{title:'اللغة العربية',id:'arabic'},
+{title:'الفرنسية',id:'french'},
+{title:'الإيقاظ العلمي',id:'science'}
+],
+
+'السنة الخامسة':[
+{title:'الرياضيات',id:'math'},
+{title:'اللغة العربية',id:'arabic'},
+{title:'الفرنسية',id:'french'},
+{title:'الإيقاظ العلمي',id:'science'}
+],
+
+'السنة السادسة':[
+{title:'الرياضيات',id:'math'},
+{title:'اللغة العربية',id:'arabic'},
+{title:'الفرنسية',id:'french'},
+{title:'الإيقاظ العلمي',id:'science'}
+]
+
+};
+
+const levelMap = {
+
+'السنة الأولى':'level1',
+'السنة الثانية':'level2',
+'السنة الثالثة':'level3',
+'السنة الرابعة':'level4',
+'السنة الخامسة':'level5',
+'السنة السادسة':'level6'
+
+};
+
+/* =========================
+CARD
+========================= */
+
+function createSection(title,color,folder){
+
+let style = {
+blue:{bg:'bg-blue-50',text:'text-blue-700',btn:'bg-blue-700'},
+yellow:{bg:'bg-yellow-50',text:'text-yellow-700',btn:'bg-yellow-700'},
+red:{bg:'bg-red-50',text:'text-red-700',btn:'bg-red-700'}
+}[color];
+
+return `
+<div class="${style.bg} rounded-2xl p-4">
+
+<div class="flex justify-between items-center">
+
+<h3 class="font-black ${style.text} text-xl">
+${title}
+</h3>
+
+<button class="upload-btn ${style.btn} text-white px-5 py-3 rounded-xl font-bold hidden">
+رفع
+</button>
+
+</div>
+
+<div class="files-box mt-4"></div>
+
+</div>
+`;
+
+}
+
+function createCard(subject,color){
+
+return `
+
+<div class="card bg-white rounded-[30px] p-6 shadow-xl">
+
+<h2 class="text-5xl font-black ${color} mb-6">
+${subject}
+</h2>
+
+<div class="space-y-4">
+
+${createSection('الدروس','blue')}
+${createSection('التمارين','yellow')}
+${createSection('الاختبارات','red')}
+
+</div>
+
+</div>
+
+`;
+
+}
+
+/* =========================
+RENDER
+========================= */
+
+window.renderSubjects = function(level,btn=null){
+
+levelTitle.innerText =
+`✨ ${level} ✨`;
+
+subjectsContainer.innerHTML = '';
+
+document
+.querySelectorAll('.level-btn')
+.forEach(b=>{
+
+b.classList.remove(
+'bg-green-600',
+'text-white'
+);
+
+b.classList.add(
+'bg-white'
+);
+
+});
+
+if(btn){
+
+btn.classList.remove('bg-white');
+
+btn.classList.add(
+'bg-green-600',
+'text-white'
+);
+
+}
+
+const search =
+searchInput.value.trim();
+
+const subjects =
+(subjectsByLevel[level] || [])
+.filter(subject =>
+subject.title.includes(search)
+);
+
+subjects.forEach(subject=>{
+
+let color = 'text-blue-700';
+
+if(subject.id === 'math'){
+color = 'text-indigo-700';
+}
+
+if(subject.id === 'arabic'){
+color = 'text-green-700';
+}
+
+if(subject.id === 'science'){
+color = 'text-orange-700';
+}
+
+if(subject.id === 'french'){
+color = 'text-pink-700';
+}
+
+subjectsContainer.innerHTML +=
+createCard(
+subject.title,
+color
+);
+
+});
+
+if(isAdmin){
+
+document
+.querySelectorAll('.upload-btn')
+.forEach(btn=>{
+
+btn.classList.remove('hidden');
+
+});
+
+}
+
+}
+
+/* =========================
+ABOUT
+========================= */
+
+window.openAboutPage = function(){
+
+subjectsContainer.innerHTML = `
+
+<div class="col-span-full">
+
+<div class="bg-white rounded-[35px] p-10 shadow-2xl text-center">
+
+<h1 class="text-6xl font-black text-blue-700 mb-6">
+منصة نجم الدين همادي
+</h1>
+
+<p class="text-2xl font-bold text-gray-700 leading-loose">
+
+منصة تعليمية مخصصة لتلاميذ المرحلة الابتدائية
+
+</p>
+
+</div>
+
+</div>
+
+`;
+
+}
+
+/* =========================
+AUTH
+========================= */
+
+let isAdmin = false;
+
+window.openLogin = function(){
+
+subjectsContainer.innerHTML = `
+
+<div class="col-span-full flex justify-center">
+
+<div class="bg-white p-10 rounded-[35px] shadow-2xl w-full max-w-md">
+
+<h1 class="text-5xl font-black text-center text-blue-700 mb-8">
+تسجيل الدخول
+</h1>
+
+<input
+id="email"
+type="email"
+placeholder="البريد الإلكتروني"
+class="w-full border-2 border-blue-200 rounded-2xl p-4 mb-4 font-bold"
+/>
+
+<input
+id="password"
+type="password"
+placeholder="كلمة المرور"
+class="w-full border-2 border-blue-200 rounded-2xl p-4 mb-6 font-bold"
+/>
+
+<button
+onclick="login()"
+class="w-full bg-green-600 text-white py-4 rounded-2xl font-black text-xl">
+دخول
+</button>
+
+</div>
+
+</div>
+
+`;
+
+}
+
+/* LOGIN */
+
+window.login = async function(){
+
+isAdmin = true;
+
+document
+.getElementById('logout-btn')
+.classList.remove('hidden');
+
+document
+.getElementById('bg-btn-container')
+.classList.remove('hidden');
+
+alert('تم تسجيل الدخول');
+
+renderSubjects('السنة الأولى');
+
+}
+
+/* LOGOUT */
+
+window.logout = async function(){
+
+isAdmin = false;
+
+document
+.getElementById('logout-btn')
+.classList.add('hidden');
+
+document
+.getElementById('bg-btn-container')
+.classList.add('hidden');
+
+alert('تم تسجيل الخروج');
+
+renderSubjects('السنة الأولى');
+
+}
+
+/* =========================
+SEARCH
+========================= */
+
+searchInput.addEventListener('input',()=>{
+
+const level =
+levelTitle.innerText
+.replaceAll('✨','')
+.trim();
+
+renderSubjects(level);
+
+});
+
+/* =========================
+BACKGROUND
+========================= */
+
+const changeBgBtn =
+document.getElementById("changeBgBtn");
+
+const bgInput =
+document.getElementById("bgInput");
+
+changeBgBtn?.addEventListener("click", ()=>{
+
+    bgInput.click();
+
+});
+
+bgInput?.addEventListener("change",(e)=>{
+
+    const file = e.target.files[0];
+
+    if(!file) return;
+
+    const reader = new FileReader();
+
+    reader.onload = function(event){
+
+        const imageUrl =
+        event.target.result;
+
+        document.body.style.backgroundImage =
+        `url('${imageUrl}')`;
+
+        document.body.style.backgroundSize =
+        "cover";
+
+        document.body.style.backgroundPosition =
+        "center";
+
+        document.body.style.backgroundAttachment =
+        "fixed";
+
+        localStorage.setItem(
+            "siteBackground",
+            imageUrl
+        );
+
+    };
+
+    reader.readAsDataURL(file);
+
+});
+
+window.addEventListener("load",()=>{
+
+    const savedBg =
+    localStorage.getItem("siteBackground");
+
+    if(savedBg){
+
+        document.body.style.backgroundImage =
+        `url('${savedBg}')`;
+
+        document.body.style.backgroundSize =
+        "cover";
+
+        document.body.style.backgroundPosition =
+        "center";
+
+        document.body.style.backgroundAttachment =
+        "fixed";
+
+    }
+
+});
+
+/* =========================
+START
+========================= */
+
+renderSubjects('السنة الأولى');
+
+</script>
+
+</body>
+
+</html>
+```
